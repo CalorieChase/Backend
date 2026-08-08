@@ -1,4 +1,4 @@
-from agent import track_app, workout_app
+from app.agents.workflow import track_app, workout_app
 import sys
 
 # Ensure UTF-8 output for emojis in console
