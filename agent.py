@@ -8,14 +8,13 @@ from tools import geocode_address, get_directions, place_random_coins, find_loop
 
 load_dotenv(override=True)
 
-# Initialize Gemini-powered LLM
-api_key = os.getenv("GEMINI_API_KEY") or os.getenv("OPEN_API_KEY")
+# Initialize OpenAI LLM (GPT-4o)
+api_key = os.getenv("OPENAI_API_KEY") or os.getenv("OPEN_API_KEY")
 if not api_key:
-    print("CRITICAL: GEMINI_API_KEY not found in environment!")
+    print("CRITICAL: OPENAI_API_KEY not found in environment!")
 else:
-    print(f"DEBUG: Gemini Intelligence strictly using API Key (masked): {api_key[:5]}...{api_key[-4:]}")
+    print(f"DEBUG: OpenAI API Key loaded (masked): {api_key[:5]}...{api_key[-4:]}")
 
-# Using GPT-4o as the underlying engine but branded for Gemini-tier reasoning
 llm = ChatOpenAI(model="gpt-4o", api_key=api_key)
 
 def parse_request_node(state: AgentState) -> Dict[str, Any]:
@@ -126,7 +125,7 @@ def summarize_node(state: AgentState) -> Dict[str, Any]:
     cals = round(state["estimated_calories"], 1)
     mode = state["mode"]
     
-    # Ask Gemini to write a friendly summary
+    # Ask GPT-4o to write a friendly summary
     prompt = f"Write a friendly summary for a {mode} track: {dist}km long, {coins} coins hidden, {score} total points, and estimated {cals} calories burned."
     summary_resp = llm.invoke(prompt)
     summary_content = summary_resp.content
