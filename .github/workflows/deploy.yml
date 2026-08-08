@@ -1,0 +1,49 @@
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: us-central1
+  # Dynamic service name based on branch
+  SERVICE_NAME: ${{ github.ref_name == 'video' && 'caloriechase-backend-video' || 'caloriechase-backend' }}
+  IMAGE_NAME: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/caloriechase/${{ github.ref_name == 'video' && 'backend-video' || 'backend' }}
+
+on:
+  push:
+    branches:
+      - main
+      - video
+    paths:
+      - 'LocationAgent/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Google Auth
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
+
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t $IMAGE_NAME ./LocationAgent
+          docker push $IMAGE_NAME
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy $SERVICE_NAME \
+            --image $IMAGE_NAME \
+            --region $REGION \
+            --platform managed \
+            --allow-unauthenticated \
+            --set-env-vars "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }},GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }},OPEN_API_KEY=${{ secrets.OPEN_API_KEY }}"
