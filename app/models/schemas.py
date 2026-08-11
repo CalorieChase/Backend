@@ -1,16 +1,16 @@
-from typing import List, Optional
+from pydantic import BaseModel, Field
 
-from pydantic import BaseModel
+from app.models.domain import GoalType, RouteType
 
 
 class RouteRequest(BaseModel):
-    starting_point: str
-    ending_point: Optional[str] = None
-    prompt: Optional[str] = ""
-    activity_type: str
-    distance: float
-    height: Optional[float] = 175.0
-    weight: Optional[float] = 70.0
+    starting_location: str = Field(alias="startingLocation")
+    weight_kg: float = Field(alias="weightKg", gt=0)
+    goal_type: GoalType = Field(alias="goalType")
+    goal_value: float = Field(alias="goalValue", gt=0)
+    route_type: RouteType = Field(alias="routeType")
+
+    model_config = {"populate_by_name": True}
 
 
 class LatLngModel(BaseModel):
@@ -25,9 +25,11 @@ class CoinModel(BaseModel):
 
 
 class RouteResponse(BaseModel):
-    route: List[LatLngModel]
-    coins: List[CoinModel]
-    est_distance: float
-    est_cal: float
-    summary: str
-    destination: LatLngModel
+    route_coordinates: list[LatLngModel] = Field(alias="routeCoordinates")
+    route_polyline: str = Field(alias="routePolyline")
+    route_type: RouteType = Field(alias="routeType")
+    total_distance_km: float = Field(alias="totalDistanceKm")
+    estimated_active_calories: float = Field(alias="estimatedActiveCalories")
+    gold_coins: list[CoinModel] = Field(alias="goldCoins")
+
+    model_config = {"populate_by_name": True}

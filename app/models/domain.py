@@ -1,6 +1,10 @@
-from typing import List, Optional, TypedDict
+from typing import Literal, Optional, TypedDict
 
 from pydantic import BaseModel, Field
+
+
+GoalType = Literal["distance", "active_calories"]
+RouteType = Literal["AUTO", "LOOP", "TURNAROUND"]
 
 
 class LatLng(BaseModel):
@@ -14,48 +18,26 @@ class Coin(BaseModel):
     value: int = 10
 
 
-class AgentState(TypedDict):
-    start_location: str
-    destination: Optional[str]
-    target_distance: float
-    mode: str
-    keyword_search: Optional[str]
-    height: float
-    weight: float
+class RouteCandidate(BaseModel):
+    route_type: RouteType
+    coordinates: list[LatLng]
+    distance_km: float
+
+
+class RouteWorkflowState(TypedDict):
+    starting_location: str
+    weight_kg: float
+    goal_type: GoalType
+    goal_value: float
+    route_type: RouteType
     start_coords: Optional[LatLng]
-    dest_coords: Optional[LatLng]
-    waypoints: List[LatLng]
-    coins: List[Coin]
-    actual_distance: float
-    estimated_calories: float
-    num_coins: int
-    total_score: int
-    summary: str
-
-
-class TrackRequest(BaseModel):
-    """Schema for parsing user requests for a track."""
-
-    start_location: str = Field(description="The starting point of the track")
-    destination: Optional[str] = Field(
-        description="The destination point. If same as start or empty, assume a loop."
-    )
-    target_distance: float = Field(description="The desired distance for the track in kilometers")
-    mode: str = Field(description="The mode of travel: running, walking, or jogging")
-    keyword_search: Optional[str] = Field(
-        description="Specific type of destination the user wants (e.g. beach, cafe, gym, lake)"
-    )
-    height: Optional[float] = Field(description="User height in cm", default=175.0)
-    weight: Optional[float] = Field(description="User weight in kg", default=70.0)
-
-
-class WorkoutRequest(BaseModel):
-    """Schema for tracking workout progress."""
-
-    height: float = Field(description="Height in cm")
-    weight: float = Field(description="Weight in kg")
-    distance_crossed: float = Field(description="Actual distance completed in km")
-    mode: str = Field(description="The mode: running, walking, or jogging")
+    target_distance_km: float
+    estimated_active_calories: float
+    route_coordinates: list[LatLng]
+    route_polyline: str
+    total_distance_km: float
+    final_route_type: RouteType
+    gold_coins: list[Coin]
 
 
 class WorkoutState(TypedDict):
@@ -66,3 +48,12 @@ class WorkoutState(TypedDict):
     duration_hours: float
     calories_burned: float
     summary: str
+
+
+class WorkoutRequest(BaseModel):
+    """Schema for tracking workout progress."""
+
+    height: float = Field(description="Height in cm")
+    weight: float = Field(description="Weight in kg")
+    distance_crossed: float = Field(description="Actual distance completed in km")
+    mode: str = Field(description="The mode: running, walking, or jogging")
